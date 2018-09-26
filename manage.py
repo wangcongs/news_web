@@ -4,6 +4,7 @@ from flask_wtf import CSRFProtect
 from redis import StrictRedis
 from flask_session import Session
 from flask_script import Manager
+from flask_migrate import Migrate, MigrateCommand
 
 
 class Config(object):
@@ -47,6 +48,11 @@ Session(app)
 
 # 创建flask-script对象
 manager = Manager(app)
+
+# 将app和db数据库对象进行关联
+Migrate(app, db)
+# 添加数据库迁移命令到flask-script对象
+manager.add_command("db", MigrateCommand)
 
 
 @app.route('/')
