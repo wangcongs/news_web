@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
 from redis import StrictRedis
 from flask_session import Session
+from flask_script import Manager
 
 
 class Config(object):
@@ -44,12 +45,15 @@ CSRFProtect(app)
 # 为app添加session存储位置Session类的作用，就是为为app指定session的存储位置的
 Session(app)
 
+# 创建flask-script对象
+manager = Manager(app)
+
 
 @app.route('/')
 def index():
-    session["name"] = "python"
+    session["a1"] = "python11111"
     return 'index'
 
 
 if __name__ == '__main__':
-    app.run()
+    manager.run()
