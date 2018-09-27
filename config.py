@@ -1,5 +1,5 @@
 from redis import StrictRedis
-
+import logging
 
 class Config(object):
     """项目的配置"""
@@ -23,6 +23,8 @@ class Config(object):
     # 设置过期时间
     PERMANENT_SESSION_LIFETIME = 86400 * 2
 
+    LOG_LEVEL = logging.DEBUG
+
 
 class DevelopmentConfig(Config):
     """开发环境下的配置"""
@@ -32,6 +34,7 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     """生产环境下的配置"""
     DEBUG = False
+    LOG_LEVEL = logging.ERROR
 
 
 class TestingConfig(Config):
@@ -41,7 +44,7 @@ class TestingConfig(Config):
 
 
 # 定义一个字典，存储各种环境下的配置类信息
-CONFIG = {
+config = {
     "development": DevelopmentConfig,
     "production": ProductionConfig,
     "testing": TestingConfig
