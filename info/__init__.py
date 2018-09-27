@@ -7,6 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
 from redis import StrictRedis
 from config import config
+from info.modules.index import index_blu
 
 # 初始化数据库
 db = SQLAlchemy()
@@ -47,4 +48,6 @@ def create_app(config_name):
     # 为app添加session存储位置Session类的作用，就是为为app指定session的存储位置的
     Session(app)
 
+    # 将蓝图注册到app中
+    app.register_blueprint(index_blu)
     return app

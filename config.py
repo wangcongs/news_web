@@ -1,6 +1,7 @@
 from redis import StrictRedis
 import logging
 
+
 class Config(object):
     """项目的配置"""
     SECRET_KEY = '8Q63yvFuBbhjXIRQc8H96Yr0LvGXPwmthzalCoQUNto9J9cTD+ChKxb7Yk3RcvzlmIfZvUWPAxPeIg/J/1aV6A=='
