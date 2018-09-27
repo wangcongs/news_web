@@ -32,7 +32,7 @@ def setup_log(config_name):
 
 
 def create_app(config_name):
-    # 调用设置日志的函数
+    # 调用配置日志的函数
     setup_log(config_name)
     # 初始化app对象
     app = Flask(__name__)
