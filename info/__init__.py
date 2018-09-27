@@ -7,10 +7,13 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
 from redis import StrictRedis
 from config import config
-from info.modules.index import index_blu
+# 在此处导入蓝图对象，会导致循环导入的问题，应该将蓝图在注册时再导入
+# from info.modules.index import index_blu
 
 # 初始化数据库
 db = SQLAlchemy()
+# 将redis存储对象定义成一个全局变量，并使用python3.6的新特性，利用注释指明变量的类型
+redis_store = None  # type:StrictRedis
 
 
 def setup_log(config_name):
@@ -42,6 +45,7 @@ def create_app(config_name):
     # flask中很多扩展里面都可以先初始化扩展对象，然后再调用对象的init_app方法进行初始化
     db.init_app(app)
     # 创建redis存储对象
+    global redis_store  # 作为修改全局变量
     redis_store = StrictRedis(host=config[config_name].REDIS_HOST, port=config[config_name].REDIS_PORT)
     # 开启当前项目CSRF保护， CSRFProtect只做验证工作，cookie中的 csrf_token 和表单中的 csrf_token 需要我们自己实现
     CSRFProtect(app)
@@ -49,5 +53,6 @@ def create_app(config_name):
     Session(app)
 
     # 将蓝图注册到app中
+    from info.modules.index import index_blu
     app.register_blueprint(index_blu)
     return app
