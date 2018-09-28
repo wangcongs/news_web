@@ -152,6 +152,14 @@ var imageCodeId = ""
 
 // TODO 生成一个图片验证码的编号，并设置页面中图片验证码img标签的src属性
 function generateImageCode() {
+    // 此函数在打开注册框和点击图片时都会被调用
+    // 1、生成一个uuid码
+    imageCodeId = generateUUID()
+    // 2、浏览器向服务器发起一个图片请求,get请求，将获得的uuid发给服务器
+    // “/image_code?imageCodeId=imageCodeId”
+    var url = "/image_code?imageCodeId=" + imageCodeId
+    //3、给img标签设置src属性
+    $(".get_pic_code").attr("src", url)
 
 }
 
