@@ -157,7 +157,7 @@ function generateImageCode() {
     imageCodeId = generateUUID()
     // 2、浏览器向服务器发起一个图片请求,get请求，将获得的uuid发给服务器
     // “/image_code?imageCodeId=imageCodeId”
-    var url = "/image_code?imageCodeId=" + imageCodeId
+    var url = "/passport/image_code?imageCodeId=" + imageCodeId
     //3、给img标签设置src属性
     $(".get_pic_code").attr("src", url)
 
