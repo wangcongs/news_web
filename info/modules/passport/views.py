@@ -25,6 +25,7 @@ def send_sms_code():
     """
     # 由于传入的参数格式是json
     # 参数实例：'{"mobile": 1888888888, "image_code": "aaaa", "image_code_id": "asdsfagfewr23refw2fs"}'
+    # return jsonify(errno=RET.OK, errmsg="短信发送成功")
 
     # 1、获取参数
     params_dict = request.json
@@ -50,7 +51,8 @@ def send_sms_code():
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg="数据查询失败")
-
+    # 打印一下发现，从数据库中取出的数据是字节形式（b'O5RS'），所以一直对不上，需要设置数据库的时候进行配置，使得取出来的直接是字符串
+    print(real_image_code)
     # 校验取到的验证码是否为空
     if not real_image_code:
         return jsonify(errno=RET.NODATA, errmsg="验证码已过期")

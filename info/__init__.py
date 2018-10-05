@@ -46,9 +46,9 @@ def create_app(config_name):
     db.init_app(app)
     # 创建redis存储对象
     global redis_store  # 作为修改全局变量
-    redis_store = StrictRedis(host=config[config_name].REDIS_HOST, port=config[config_name].REDIS_PORT)
+    redis_store = StrictRedis(host=config[config_name].REDIS_HOST, port=config[config_name].REDIS_PORT, decode_responses=True)
     # 开启当前项目CSRF保护， CSRFProtect只做验证工作，cookie中的 csrf_token 和表单中的 csrf_token 需要我们自己实现
-    CSRFProtect(app)
+    # CSRFProtect(app)
     # 为app添加session存储位置Session类的作用，就是为为app指定session的存储位置的
     Session(app)
 

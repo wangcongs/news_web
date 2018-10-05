@@ -150,7 +150,7 @@ $(function(){
 
 var imageCodeId = ""
 
-// TODO 生成一个图片验证码的编号，并设置页面中图片验证码img标签的src属性
+// 生成一个图片验证码的编号，并设置页面中图片验证码img标签的src属性
 function generateImageCode() {
     // 此函数在打开注册框和点击图片时都会被调用
     // 1、生成一个uuid码
@@ -182,7 +182,58 @@ function sendSMSCode() {
         return;
     }
 
-    // TODO 发送短信验证码
+    // 发送短信验证码
+    var params = {
+        "mobile": mobile,
+        "image_code": imageCode,
+        "image_code_id": imageCodeId
+    }
+    // 由于是局部刷新，不使用表单请求，表单请求无法控制表单的界面
+    $.ajax({
+        // 请求地址
+        url: "/passport/sms_code",
+        // 请求方式
+        type: "POST",
+        // 请求数据,将字典（js中叫对象），转换成json数据形式
+        data: JSON.stringify(params),
+        // 请求的数据类型
+        contentType: "application/json",
+        // 请求成功发出后执行的函数
+        success: function (resp) {
+            if (resp.errno == "0"){
+                // 短信发送成功
+                var num = 60;
+                // 设置一个定时器
+                var t = setInterval(function () {
+                    if (num == 1){
+                        // 倒计时结束
+                        // 清除倒计时
+                        clearInterval(t)
+                        // 重新设置要显示的内容
+                        $(".get_code").html("点击获取验证码");
+                        // 重新添加点击事件
+                        $(".get_code").attr("onclick", "sendSMSCode();");
+                    }else {
+                        // 倒计时进行中
+                        num -= 1;
+                        // 设置a便签显示内容
+                        $(".get_code").html(num + "秒后重新获取");
+                    }
+                }, 1000)
+
+            } else {
+                // 表示后端出现了错误，可以将错误信息展示到前端页面中
+                $("#register-sms-code-err").html(resp.errmsg);
+                $("#register-sms-code-err").show();
+                // 将点击按钮的onclick事件函数恢复回去
+                $(".get_code").attr("onclick", "sendSMSCode();");
+                // 如果错误码是4004，代表验证码错误，重新生成验证码
+                if (resp.errno == "4004") {
+                    generateImageCode()
+                }
+            }
+        }
+    })
 }
 
 // 调用该函数模拟点击左侧按钮
