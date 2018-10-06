@@ -65,20 +65,22 @@ def register():
     user.nick_name = mobile
     # 记录最后一次登录的时间
     user.last_login = datetime.datetime.now()
-    # TODO 对密码进行处理
+    # 对密码进行处理
+    # 模型类中使用propary属性修饰password方法，使得可以像属性一样去访问方法，在赋值时，调用加密程序进行加密
+    user.password = password
 
-    # try:
-    #     db.session.add(user)
-    #     db.session.commit()
-    # except Exception as e:
-    #     current_app.logger.error(e)
-    #     db.session.rollback()
-    #     return jsonify(errno=RET.DBERR, errmsg="数据保存失败")
-    #
+    try:
+        db.session.add(user)
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errmsg="数据保存失败")
+
     # 将数据存储到session中，表明已经登录成功
-    # session["user_id"] = user.id
-    # session["mobile"] = user.mobile
-    # session["nike_name"] = user.nick_name
+    session["user_id"] = user.id
+    session["mobile"] = user.mobile
+    session["nike_name"] = user.nick_name
 
     # 回应已经响应成功
     return jsonify(errno=RET.OK, errmsg="注册成功")

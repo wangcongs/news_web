@@ -59,6 +59,16 @@ class User(BaseModel, db.Model):
     news_list = db.relationship('News', backref='user', lazy='dynamic')
 
 
+    @property
+    def password(self):
+        pass
+
+    @password.setter
+    def password(self, value):
+        # self.password_hash = 对value值进行加密
+        self.password_hash = generate_password_hash(value)
+
+
     def to_dict(self):
         resp_dict = {
             "id": self.id,
