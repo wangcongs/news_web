@@ -5,6 +5,7 @@ from flask import Flask
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
+from flask_wtf.csrf import generate_csrf
 from redis import StrictRedis
 from config import config
 # 在此处导入蓝图对象，会导致循环导入的问题，应该将蓝图在注册时再导入
@@ -47,10 +48,23 @@ def create_app(config_name):
     # 创建redis存储对象
     global redis_store  # 作为修改全局变量
     redis_store = StrictRedis(host=config[config_name].REDIS_HOST, port=config[config_name].REDIS_PORT, decode_responses=True)
-    # 开启当前项目CSRF保护， CSRFProtect只做验证工作，cookie中的 csrf_token 和表单中的 csrf_token 需要我们自己实现
-    # CSRFProtect(app)
+
     # 为app添加session存储位置Session类的作用，就是为为app指定session的存储位置的
     Session(app)
+
+    # 开启当前项目CSRF保护， CSRFProtect只做验证工作，cookie中的 csrf_token 和表单中的 csrf_token 需要我们自己实现
+    # 帮我们做了：从cookie中取出随机值，从表单中取出随机值，然后进行校验
+    # 我们需要做的是：1、向cookie中存入一个 csrf_token   2、表单中携带（此处是ajax请求，没有表单提交，所以在ajax请求中携带）
+    CSRFProtect(app)
+
+    # 利用请求钩子，在回应之前，在response中添加随机值
+    @app.after_request
+    def after_request(response):
+        # 生成随机值
+        csrf_token = generate_csrf()
+        # 设置一个cookie
+        response.set_cookie("csrf_token", csrf_token)
+        return response
 
     # 将蓝图注册到app中
     from info.modules.index import index_blu

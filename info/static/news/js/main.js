@@ -118,7 +118,7 @@ $(function(){
             return;
         }
 
-        // 发起登录请求
+        // TODO 发起登录请求
         params = {
             "mobile": mobile,
             "password": password
@@ -128,14 +128,18 @@ $(function(){
             type: "POST",
             data: JSON.stringify(params),
             contentType: "application/json",
+            // 带着csrf_token请求
+            headers: {
+                "X-CSRFToken": getCookie("csrf_token")
+            },
             success:function (resp) {
                 if (resp.errno == "0"){
                     // 代表登录成功
                     location.reload()
                 } else {
                     // 代表登录失败
-                    $("#register-password-err").html(resp.errmsg);
-                    $("#register-password-err").show();
+                    $("#login-password-err").html(resp.errmsg);
+                    $("#login-password-err").show();
                 }
             }
         })
@@ -183,6 +187,10 @@ $(function(){
             type: "POST",
             data: JSON.stringify(params),
             contentType: "application/json",
+            // 带着csrf_token请求
+            headers: {
+                "X-CSRFToken": getCookie("csrf_token")
+            },
             success: function (resp) {
                 if (resp.errno == "0"){
                     // 刷新当前界面
@@ -246,6 +254,10 @@ function sendSMSCode() {
         data: JSON.stringify(params),
         // 请求的数据类型
         contentType: "application/json",
+        // 带着csrf_token请求
+        headers: {
+            "X-CSRFToken": getCookie("csrf_token")
+        },
         // 请求成功发出后执行的函数
         success: function (resp) {
             if (resp.errno == "0"){
@@ -317,4 +329,10 @@ function generateUUID() {
         return (c=='x' ? r : (r&0x3|0x8)).toString(16);
     });
     return uuid;
+}
+// 退出实现
+function logout() {
+    $.get("/passport/logout", function (resp) {
+        location.reload()
+    })
 }
