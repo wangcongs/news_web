@@ -1,11 +1,87 @@
 import random
 import re
-from flask import request, abort, current_app, make_response, jsonify
-from info import redis_store, constants
+
+import datetime
+from flask import request, abort, current_app, make_response, jsonify, session
+from info import redis_store, constants, db
 from info.libs.yuntongxun.sms import CCP
+from info.models import User
 from info.utils.response_code import RET
 from . import passport_blu
 from info.utils.captcha.captcha import captcha
+
+
+@passport_blu.route("/register", methods=["POST"])
+def register():
+    """
+    注册后端逻辑：
+    1、获取手机号，短信验证码，密码三项数据
+    2、校验数据是否为空
+    3、校验手机号是否正确
+    4、校验短信验证码是否正确
+    5、校验密码是否符合规则
+    6、初始化User数据表模型，将数据存入数据库
+    6、返回正确的状态
+    :return:
+    """
+    #   1、获取手机号，短信验证码，密码三项数据
+    params_dict = request.json
+    mobile = params_dict.get("mobile")
+    smscode = params_dict["smscode"]
+    password = params_dict["password"]
+
+    #  2、校验数据是否为空
+    if not all([mobile, smscode, password]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不能为空")
+    # 3、校验手机号是否正确
+    if not re.match(r"^1[345678][0-9]{9}$", mobile):
+        return jsonify(errno=RET.PARAMERR, errmsg="电话号码格式输入不正确")
+
+    # 4、校验短信验证码是否正确
+
+    # 从redis中取出短信验证码
+    try:
+        real_smscode = redis_store.get("mobile_" + mobile)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="数据库查询错误")
+
+    # 如果未取到数据
+    if not real_smscode:
+        return jsonify(errno=RET.NODATA, errmsg="验证码已过期")
+
+    # 校验短信验证码
+    if smscode != real_smscode:
+        return jsonify(errno=RET.DATAERR, errmsg="验证码输入不正确")
+
+    # 校验密码
+    if not re.match(r"[0-9a-zA-Z_]{6,}", password):
+        return jsonify(errno=RET.PARAMERR, errmsg="密码至少6位，且为数字字母下划线")
+
+    # 都验证正确之后，初始化User模型，将数据存入数据库
+    user = User()
+    user.mobile = mobile
+    # 暂时没有昵称 ，使用手机号代替
+    user.nick_name = mobile
+    # 记录最后一次登录的时间
+    user.last_login = datetime.datetime.now()
+    # TODO 对密码进行处理
+
+    try:
+        db.session.add(user)
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errmsg="数据保存失败")
+
+    # 将数据存储到session中，表明已经登录成功
+    session["user_id"] = user.id
+    session["mobile"] = user.mobile
+    session["nike_name"] = user.nick_name
+
+    # 回应已经响应成功
+    return jsonify(errno=RET.OK, errmsg="注册成功")
 
 
 @passport_blu.route("/sms_code", methods=["POST"])
