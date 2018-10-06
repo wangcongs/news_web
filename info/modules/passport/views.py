@@ -11,6 +11,50 @@ from . import passport_blu
 from info.utils.captcha.captcha import captcha
 
 
+@passport_blu.route("/login", methods=["POST"])
+def login():
+    """
+    1、获取手机号
+    2、获取密码
+    3、查询手机号是否存在
+    4、如果不存在返回用户或密码错误
+    5、如果存在，校验密码是否正确
+    6、存入session中
+    :return:
+    """
+    params_dict = request.json
+    mobile = params_dict.get("mobile")
+    password = params_dict["password"]
+
+    if not all([mobile, password]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不能为空")
+
+    # 3、校验手机号是否正确
+    if not re.match(r"^1[345678][0-9]{9}$", mobile):
+        return jsonify(errno=RET.PARAMERR, errmsg="电话号码格式输入不正确")
+
+    # 查询用户是否存在
+    try:
+        user = User.query.filter(User.mobile == mobile).first()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="数据查询错误")
+    # 验证是否存在
+    if not user:
+        return jsonify(errno=RET.NODATA, errmsg="用户不存在")
+    # 校验密码
+    if not user.check_password(password):
+        return jsonify(errno=RET.PARAMERR, errmsg="用户名或密码错误")
+
+    # 如果校验成功，存入session保存用户的登录状态
+    session["user_id"] = user.id
+    session["mobile"] = user.mobile
+    session["nike_name"] = user.nick_name
+
+    # 响应
+    return jsonify(errno=RET.OK, errmsg="登录成功")
+
+
 @passport_blu.route("/register", methods=["POST"])
 def register():
     """
