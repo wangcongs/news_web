@@ -11,6 +11,22 @@ from . import passport_blu
 from info.utils.captcha.captcha import captcha
 
 
+@passport_blu.route("/logout")
+def logout():
+    """
+    退出登录逻辑
+    1、将session的登录数据删除
+    2、响应
+    :return:
+    """
+    session.pop('user_id', None)
+    session.pop('nick_name', None)
+    session.pop('mobile', None)
+
+    # 返回结果
+    return jsonify(errno=RET.OK, errmsg="退出成功")
+
+
 @passport_blu.route("/login", methods=["POST"])
 def login():
     """
@@ -44,7 +60,7 @@ def login():
         return jsonify(errno=RET.NODATA, errmsg="用户不存在")
     # 校验密码
     if not user.check_password(password):
-        return jsonify(errno=RET.PARAMERR, errmsg="用户名或密码错误")
+        return jsonify(errno=RET.PWDERR, errmsg="用户名或密码错误")
 
     # 如果校验成功，存入session保存用户的登录状态
     session["user_id"] = user.id
