@@ -1,9 +1,64 @@
-from flask import render_template, current_app, session
+from flask import render_template, current_app, session, request, jsonify
 
 from info import constants
 from info.models import User, News
+from info.utils.response_code import RET
 from . import index_blu
 # from info import redis_store
+
+
+# 页面加载完成后，由前端发起一次异步的请求，请求本视图函数的数据
+@index_blu.route("/news_list")
+def news_list():
+    """
+    获取首页新闻数据
+    :return:
+    """
+    # 由于获取新闻数据是get请求，使用如下方式获得相关接口参数
+    cid = request.args.get('cid', "1")
+    page = request.args.get('page', 1)
+    per_page = request.args.get('per_page', 10)
+
+    # 校验参数
+    try:
+        cid = int(cid)
+        page = int(page)
+        per_page = int(per_page)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
+    # 根据接收到的参数，在数据库中查询数据
+    filters = list()  # 默认查询条件是一个空的列表
+    if cid != 1:  # 查询的不是最新数据，而是分类中中的数据（cid=1是【最新】的分类）,就将查询条件添加进去
+        filter.append(News.category_id == cid)
+
+    # 查询数据
+    try:
+        # 得到一个模型分页查询的对象
+        paginates = News.query.filter(*filters).oeder_by(News.create_time.desc()).paginate(page, per_page, False)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="数据库查询错误")
+
+    # 获取当前页的数据
+    current_page = paginates.page  # 当前页数
+    total_page = paginates.pages  # 总页数
+    news_model_list = paginates.items  # 当前页新闻模型对象列表
+
+    news_dict_list = list()
+    for news in news_model_list:
+        news_dict_list.append(news.to_basic_dict())
+
+    # 将数据装换成字典对象形式，返回
+    data = {
+        "current_page": current_page,
+        "total_page": total_page,
+        "cid": cid,
+        "news_dict_list": news_dict_list
+    }
+
+    return jsonify(errno=RET.OK, errmsg="OK", data=data)
 
 
 @index_blu.route("/")
@@ -39,6 +94,8 @@ def index():
     for news in news_list:
         # 将模型对象转化成字典，添加进字典列表中
         news_dict_list.append(news.to_dict())
+
+    # 查询出
 
     data = {
         "user_info": user.to_dict() if user else None,
