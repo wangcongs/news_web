@@ -42,7 +42,19 @@ $(function () {
         var nowScroll = $(document).scrollTop();
 
         if ((canScrollHeight - nowScroll) < 100) {
-            // TODO 判断页数，去更新新闻数据
+            // 判断页数，去更新新闻数据
+            // console.log("到底了")
+            // 如果页面还没有加载，就进行加载，并将加载状态置为true，不准进行重复加载
+            if (!data_querying){
+                data_querying = true;
+
+                // 如果当前页数小于总页数，则进行加载，且让页数+1
+                if (cur_page < total_page){
+                     cur_page += 1;
+                    updateNewsData();
+                }
+
+            }
         }
     })
 })
@@ -55,10 +67,17 @@ function updateNewsData() {
         "page": cur_page
     }
     $.get("/news_list", params, function (resp) {
+        // 一旦请求成功，说明进行了加载，将加载状态置为false表示已经加载完成(一旦加载完成，可滚动距离就增加了)
+        data_querying = false;
+        total_page = resp.data.total_page;
         if (resp.errno == "0"){
             // 代表请求成功
              // 先清空原有数据
-            $(".list_con").html('')
+            // 只有是第一页，的时候再清空，这说明是点了新标签
+            if (cur_page == 1){
+                $(".list_con").html('');
+            }
+
             // 显示数据
             for (var i=0;i<resp.data.news_dict_list.length;i++) {
                 var news = resp.data.news_dict_list[i]
