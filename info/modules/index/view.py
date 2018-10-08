@@ -31,12 +31,12 @@ def news_list():
     # 根据接收到的参数，在数据库中查询数据
     filters = list()  # 默认查询条件是一个空的列表
     if cid != 1:  # 查询的不是最新数据，而是分类中中的数据（cid=1是【最新】的分类）,就将查询条件添加进去
-        filter.append(News.category_id == cid)
+        filters.append(News.category_id == cid)
 
     # 查询数据
     try:
         # 得到一个模型分页查询的对象
-        paginates = News.query.filter(*filters).oeder_by(News.create_time.desc()).paginate(page, per_page, False)
+        paginates = News.query.filter(*filters).order_by(News.create_time.desc()).paginate(page, per_page, False)
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg="数据库查询错误")
