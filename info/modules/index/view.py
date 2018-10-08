@@ -40,7 +40,6 @@ def index():
         # 将模型对象转化成字典，添加进字典列表中
         news_dict_list.append(news.to_dict())
 
-
     data = {
         "user_info": user.to_dict() if user else None,
         "news_dict_list": news_dict_list

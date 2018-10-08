@@ -67,6 +67,18 @@ def login():
     session["mobile"] = user.mobile
     session["nike_name"] = user.nick_name
 
+    # 保存用户最后一次登录时间
+    user.last_login = datetime.datetime.now()
+
+    # 每一次在视图函数中，修改模型身上的属性，都需要commite进行提交
+    # 其实可以不用自己每次提交，需要对SQLAlthemy对象进行一项配置
+    # try:
+    #      # 因为这个user是从数据库查出来的，所以不用add,直接commite
+    #     db.session.commite()
+    # except Exception as e:
+    #     current_app.logger.error(e)
+    #     db.session.rollback
+
     # 响应
     return jsonify(errno=RET.OK, errmsg="登录成功")
 

@@ -8,6 +8,8 @@ class Config(object):
     # mysql数据库配置项
     SQLALCHEMY_DATABASE_URI = "mysql://root:mysql@127.0.0.1:3306/information777"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # 对SQLAlchemy对象进行如下配置，则在视图函数中对模型对象属性进行修改的时候，不在需要手动commite，在请求结束的时候，会自动执行一次db.session.commite()的操作
+    SQLALCHEMY_COMMIT_ON_TEARDOWN = True
 
     # redis数据库配置项
     REDIS_HOST = "127.0.0.1"
