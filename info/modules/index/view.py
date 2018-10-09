@@ -1,7 +1,7 @@
 from flask import render_template, current_app, session, request, jsonify
 
 from info import constants
-from info.models import User, News
+from info.models import User, News, Category
 from info.utils.response_code import RET
 from . import index_blu
 # from info import redis_store
@@ -95,11 +95,22 @@ def index():
         # 将模型对象转化成字典，添加进字典列表中
         news_dict_list.append(news.to_dict())
 
-    # 查询出
+    # 从数据库查询出分类信息
+    categories = list()
+    try:
+        categories = Category.query.all()
+    except Exception as e:
+        current_app.logger.error(e)
+    # 将获得的模型对象列表转化成字典
+    categories_dice_list = list()
+    for category in categories:
+        categories_dice_list.append(category.to_dict())
 
+    # 将数据 添加到对象中
     data = {
         "user_info": user.to_dict() if user else None,
-        "news_dict_list": news_dict_list
+        "news_dict_list": news_dict_list,
+        "categories_dice_list": categories_dice_list
     }
     return render_template("news/index.html", data=data)
 
