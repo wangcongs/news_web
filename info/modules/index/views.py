@@ -1,7 +1,8 @@
-from flask import render_template, current_app, session, request, jsonify
+from flask import render_template, current_app, session, request, jsonify, g
 
 from info import constants
 from info.models import User, News, Category
+from info.utils.common import user_login_data
 from info.utils.response_code import RET
 from . import index_blu
 # from info import redis_store
@@ -62,6 +63,7 @@ def news_list():
 
 
 @index_blu.route("/")
+@user_login_data
 def index():
     # 在redis设置一个数据，name : wangwu
     # redis_store.set("name", "wangwu")
@@ -72,14 +74,15 @@ def index():
     :return:
     """
     # 从session中取到用户ID（用来显示用户的登录信息）
-    user_id = session.get("user_id", None)
-    user = None
-    if user_id:
-        # 尝试从数据库中取出当前用户
-        try:
-            user = User.query.get(user_id)
-        except Exception as e:
-            current_app.logger.error(e)
+    # user_id = session.get("user_id", None)
+    # user = None
+    # if user_id:
+    #     # 尝试从数据库中取出当前用户
+    #     try:
+    #         user = User.query.get(user_id)
+    #     except Exception as e:
+    #         current_app.logger.error(e)
+    user = g.user
 
     # 从数据库中查出新闻排行，传递给摸板，进行显示
     news_list = list()

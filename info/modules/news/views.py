@@ -1,16 +1,21 @@
-from flask import render_template, request, session, current_app
+from flask import render_template, request, session, current_app, g
 
 from info import constants
 from info.models import User, News
+# from info.utils.common import user_login_data
+from info.utils.common import user_login_data
 from . import news_blu
 
 
 @news_blu.route("/<int:news_id>")
+@user_login_data
 def news_detail(news_id):
     """
     显示新闻详情页
     :param news_id:
     :return:
+    """
+
     """
     # 1.查询用户登录情况，如果登录，将右上角信息显示需要数据传给摸板（和首页一样的操作）
     # 从session中获取用户信息,如果获取失败，返回None
@@ -24,6 +29,11 @@ def news_detail(news_id):
         except Exception as e:
             current_app.logger.error(e)
     # 将用户模型对象转化成字典形式，传给摸板data
+"""
+    # 调用函数的方式实现登录检验，也可行，但是此处我们使用装饰器的形式
+    # user = user_login_data()
+
+    user = g.user
 
     # 2.从数据库查询排行信息，将数据传给摸板（和首页一样的操作）
     # 定义一个空的列表，防止数据库查询失败，列表不存在
@@ -39,6 +49,7 @@ def news_detail(news_id):
     for news in news_list:
         news_dict_list.append(news.to_basic_dict())
 
+    # 将得到的数据存储起来
     data = {
         "user_info": user.to_dict() if user else None,
         "news_dict_list": news_dict_list

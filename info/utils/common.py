@@ -1,4 +1,9 @@
 # 用来存放自定义的工具类
+import functools
+
+from flask import session, current_app, g
+
+from info.models import User
 
 
 def do_index_class(index):
@@ -10,3 +15,36 @@ def do_index_class(index):
         return "third"
     else:
         return ""
+
+
+# 定义一个装饰器，用来实现检测用户登录情况
+def user_login_data(f):
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+        # 从session中获取user_id的数值（查询登录状态）
+        user_id = session.get("user_id", None)
+        # 提前将user模型置为None
+        user = None
+        # 从数据库中查询user模型
+        try:
+            user = User.query.get(user_id)
+        except Exception as e:
+            current_app.logger.error(e)
+        # 将查询到的结果赋给g变量
+        g.user = user
+        return f(*args, **kwargs)
+    return wrapper
+
+
+# 定义一个函数，在需要进行登录检测的时候，调用此函数就可以（可行）
+# def user_login_data():
+#         # 从session中获取user_id的数值（查询登录状态）
+#         user_id = session.get("user_id", None)
+#         # 提前将user模型置为None
+#         user = None
+#         # 从数据库中查询user模型
+#         try:
+#             user = User.query.get(user_id)
+#         except Exception as e:
+#             current_app.logger.error(e)
+#         return user

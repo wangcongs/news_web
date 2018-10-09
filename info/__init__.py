@@ -12,7 +12,7 @@ from config import config
 # from info.modules.index import index_blu
 
 # 初始化数据库
-from info.utils.common import do_index_class
+
 
 db = SQLAlchemy()
 # 将redis存储对象定义成一个全局变量，并使用python3.6的新特性，利用注释指明变量的类型
@@ -79,6 +79,7 @@ def create_app(config_name):
     app.register_blueprint(news_blu)
 
     # 向app中 添加过模板滤器
+    from info.utils.common import do_index_class
     app.add_template_filter(do_index_class, "index_class")
 
     # 返回app对象
