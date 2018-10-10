@@ -63,9 +63,10 @@ def news_detail(news_id):
     # 先设置一个布尔值，表示新闻是否被收藏
     is_collected = False
 
-    # if 用户已登录：
-    #     判断用户是否收藏当前新闻，如果收藏：
-    #         is_collected = True
+    if user:
+        # 此处查询所有的新闻不需要加all()，动态显示的模式会让在需要使用时，自动加载
+        if news in user.collection_news:
+            is_collected = True
 
     # 将得到的数据存储起来
     data = {
