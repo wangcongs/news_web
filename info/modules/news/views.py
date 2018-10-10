@@ -8,7 +8,7 @@ from info.utils.response_code import RET
 from . import news_blu
 
 
-news_blu.route("/news/news_comment", methods=["POST"])
+@news_blu.route("/news_comment", methods=["POST"])
 @user_login_data
 def news_comment():
     """
@@ -66,7 +66,7 @@ def news_comment():
         return jsonify(errno=RET.DBERR, errmsg="数据提交错误")
 
     # 操作成功 回应，并将评论内容返回给前端，用来显示评论
-    return jsonify(errno=RET.OK, errmsg="操作成功", comment=comment.to_dict())
+    return jsonify(errno=RET.OK, errmsg="操作成功", data=comment.to_dict())
 
 
 
