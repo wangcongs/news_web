@@ -58,12 +58,20 @@ def news_detail(news_id):
     # 如果未查到请求的新闻，抛出404错误,后面会统一处理404错误
     if not news:
         abort(404)
+    # 新闻点击点击此处+1
     news.clicks += 1
+    # 先设置一个布尔值，表示新闻是否被收藏
+    is_collected = False
+
+    # if 用户已登录：
+    #     判断用户是否收藏当前新闻，如果收藏：
+    #         is_collected = True
 
     # 将得到的数据存储起来
     data = {
         "user_info": user.to_dict() if user else None,
         "news_dict_list": news_dict_list,
-        "news": news.to_dict()
+        "news": news.to_dict(),
+        "is_collected": is_collected
     }
     return render_template("news/detail.html", data=data)
