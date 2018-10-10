@@ -8,7 +8,7 @@ from info.utils.response_code import RET
 from . import news_blu
 
 
-@news_blu.route("/news/comment_like", methods=["POST"])
+@news_blu.route("/comment_like", methods=["POST"])
 @user_login_data
 def comment_like():
     """
@@ -72,13 +72,14 @@ def comment_like():
             comment_like_model.user_id = user.id
             comment_like_model.comment_id = comment.id
             db.session.add(comment_like_model)
+            comment.like_count += 1
     else:
         # 取消点赞
         # 根据user.id和comment.id查询出这个点赞模型，然后删除
         comment_like_model = CommentLike.query.filter(CommentLike.user_id == user.id,
                                                       CommentLike.comment_id == comment.id).first()
         if comment_like_model:
-            comment_like_model.delete()
+            db.session.delete(comment_like_model)
             comment.like_count -= 1
 
     try:
