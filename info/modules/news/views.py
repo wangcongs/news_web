@@ -1,11 +1,96 @@
 from flask import render_template, request, session, current_app, g, abort, jsonify
 
 from info import constants, db
-from info.models import User, News, Comment
+from info.models import User, News, Comment, CommentLike
 # from info.utils.common import user_login_data
 from info.utils.common import user_login_data
 from info.utils.response_code import RET
 from . import news_blu
+
+
+@news_blu.route("/news/comment_like", methods=["POST"])
+@user_login_data
+def comment_like():
+    """
+    实现点赞和取消点赞功能
+    1
+    :return:
+    """
+    # 先判断用户是否登录
+    user = g.user
+    if not user:
+        return jsonify(errno=RET.SESSIONERR, errmsg="用户未登录")
+
+    # 获取参数
+    comment_id = request.json.get("comment_id", None)
+    news_id = request.json.get("news_id", None)
+    action = request.json.get("action", None)
+
+    # 校验参数
+    if not all([comment_id, news_id, action]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不足")
+
+    try:
+        comment_id = int(comment_id)
+        news_id = int(news_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.PARAMERR, errmsg="参数格式错误")
+
+    if action not in ("add", "remove"):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数格式错误")
+
+    # 查询新闻，判断是否存在(不需要判断了)
+    # try:
+    #     news = News.query.get(news_id)
+    # except Exception as e:
+    #     current_app.logger.error(e)
+    #     return jsonify(errno=RET.DBERR, errmsg="查询新闻错误")
+    # if not news:
+    #     return jsonify(errno=RET.NODATA, errmsg="未查询到新闻数据")
+
+    # 查询要回复的评论，并判断是否存在
+    try:
+        comment = Comment.query.get(comment_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询评论错误")
+
+    if not comment:
+        return jsonify(errno=RET.NODATA, errmsg="未查询到评论数据")
+
+    # 添加点赞和取消点赞
+    if action == "add":
+        # 点赞评论
+        # 点赞之前要查一下是否已经点过赞
+        comment_like_model = CommentLike.query.filter(CommentLike.user_id == user.id,
+                                                      CommentLike.comment_id == comment.id).first()
+        if not comment_like_model:
+            # 初始化一个CommentLike模型，像数据库添加点赞数据
+
+            comment_like_model = CommentLike()
+            comment_like_model.user_id = user.id
+            comment_like_model.comment_id = comment.id
+            db.session.add(comment_like_model)
+    else:
+        # 取消点赞
+        # 根据user.id和comment.id查询出这个点赞模型，然后删除
+        comment_like_model = CommentLike.query.filter(CommentLike.user_id == user.id,
+                                                      CommentLike.comment_id == comment.id).first()
+        if comment_like_model:
+            comment_like_model.delete()
+            comment.like_count -= 1
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="数据库操作失败")
+
+    return jsonify(errno=RET.OK, errmsg="OK")
+
+
 
 
 @news_blu.route("/news_comment", methods=["POST"])
