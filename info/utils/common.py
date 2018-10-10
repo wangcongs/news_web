@@ -18,6 +18,7 @@ def do_index_class(index):
 
 
 # 定义一个装饰器，用来实现检测用户登录情况
+# 使用 functools.wraps 去装饰内层函数，可以保持当前装饰器去装饰的函数的 __name__ 的值不变
 def user_login_data(f):
     @functools.wraps(f)
     def wrapper(*args, **kwargs):
