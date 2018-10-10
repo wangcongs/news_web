@@ -1,4 +1,4 @@
-from flask import render_template, request, session, current_app, g
+from flask import render_template, request, session, current_app, g, abort
 
 from info import constants
 from info.models import User, News
@@ -49,9 +49,21 @@ def news_detail(news_id):
     for news in news_list:
         news_dict_list.append(news.to_basic_dict())
 
+    # 3.从数据库查询出当前news_id新闻内容，显示在新闻详情页中
+    news = None
+    try:
+        news = News.query.get(news_id)
+    except Exception as e:
+        current_app.logger.error(e)
+    # 如果未查到请求的新闻，抛出404错误,后面会统一处理404错误
+    if not news:
+        abort(404)
+    news.clicks += 1
+
     # 将得到的数据存储起来
     data = {
         "user_info": user.to_dict() if user else None,
-        "news_dict_list": news_dict_list
+        "news_dict_list": news_dict_list,
+        "news": news.to_dict()
     }
     return render_template("news/detail.html", data=data)
