@@ -37,17 +37,17 @@
             {% endif %}
 
             {# 如果用户已经收藏，显示已收藏 #}
-            {% if data.is_collected %}
-            <a href="javascript:;" class="collected block-center" style="display: block"><span class="out">已收藏</span><span class="over">取消收藏</span></a>
-            {% else %}
-                 <a href="javascript:;" class="collection block-center">收藏</a>
-            {% endif %}
+{#            {% if data.is_collected %}#}
+{#            <a href="javascript:;" newsid="{{ data.news.id }}" class="collected block-center" style="display: block"><span class="out">已收藏</span><span class="over">取消收藏</span></a>#}
+{#            {% else %}#}
+{#                 <a href="javascript:;" class="collection block-center" newsid="{{ data.news.id }}">收藏</a>#}
+{#            {% endif %}#}
 
 {#        也可以使用这种方式实现#}
-{#            <a href="javascript:;" class="collected block-center" data-newid="{{ data.news.id }}" style="display: {% if data.is_collected %} block#}
-{#            {% else %} none {% endif %};"><span class="out">已收藏</span><span class="over">取消收藏</span></a>#}
-{#            <a href="javascript:;" class="collection block-center" data-newid="{{ data.news.id }}" style="display: {% if data.is_collected %} none#}
-{#            {% else %} block {% endif %};">收藏</a>#}
+            <a href="javascript:;" class="collected block-center" newsid="{{ data.news.id }}" style="display: {% if data.is_collected %} block
+            {% else %} none {% endif %};"><span class="out">已收藏</span><span class="over">取消收藏</span></a>
+            <a href="javascript:;" class="collection block-center" newsid="{{ data.news.id }}" style="display: {% if data.is_collected %} none
+            {% else %} block {% endif %};">收藏</a>
 
 {#            <a href="javascript:;" class="collection block-center">收藏</a>#}
 {#            <a href="javascript:;" class="collected block-center" style="display: none"><span class="out">已收藏</span><span class="over">取消收藏</span></a>#}

@@ -1,11 +1,76 @@
 from flask import render_template, request, session, current_app, g, abort, jsonify
 
-from info import constants
-from info.models import User, News
+from info import constants, db
+from info.models import User, News, Comment
 # from info.utils.common import user_login_data
 from info.utils.common import user_login_data
 from info.utils.response_code import RET
 from . import news_blu
+
+
+news_blu.route("/news/news_comment", methods=["POST"])
+@user_login_data
+def news_comment():
+    """
+    评论新闻和回复别人评论
+    1、接收三个参数
+    2、对参数进行校验
+    3、新闻是否存在校验
+    4、存入评论的数据库
+    :return:
+    """
+    # 先判断用户是否登录
+    user = g.user
+    if not user:
+        return jsonify(errno=RET.SESSIONERR, errmsg="用户未登录")
+
+    # 获取参数
+    news_id = request.json.get("news_id", None)
+    comment_content = request.json.get("comment", None)
+    parent_id = request.json.get("parent_id", None)
+
+    # 校验参数
+    if not all([news_id, comment_content]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不足")
+    # 校验新闻id是否正确
+    try:
+        news_id = int(news_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.PARAMERR, errmsg="参数格式错误")
+    # 查询新闻是否存在
+    try:
+        news = News.query.get(news_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="数据查询错误")
+
+    if not news:
+        return jsonify(errno=RET.NODATA, errmsg="未查询到新闻数据")
+
+    # 初始化一个评论模型，并且赋值
+    comment = Comment()
+    comment.news_id = news_id
+    comment.user_id = user.id
+    comment.content = comment_content
+    if parent_id:
+        comment.parent_id = parent_id
+
+    # 提交到数据库
+    try:
+        db.session.add(comment)
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errmsg="数据提交错误")
+
+    # 操作成功 回应，并将评论内容返回给前端，用来显示评论
+    return jsonify(errno=RET.OK, errmsg="操作成功", comment=comment.to_dict())
+
+
+
+
 
 
 @news_blu.route('/news_collect', methods=["POST"])
