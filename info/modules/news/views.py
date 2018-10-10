@@ -69,10 +69,6 @@ def news_comment():
     return jsonify(errno=RET.OK, errmsg="操作成功", data=comment.to_dict())
 
 
-
-
-
-
 @news_blu.route('/news_collect', methods=["POST"])
 @user_login_data
 def news_collect():
@@ -190,11 +186,24 @@ def news_detail(news_id):
         if news in user.collection_news:
             is_collected = True
 
+    # 加载详情页时，从数据库获取评论进行加载
+
+    comments = None
+    try:
+        comments = Comment.query.filter(Comment.news_id == news_id).order_by(Comment.create_time.desc())
+    except Exception as e:
+        current_app.logger.error(e)
+    comments_list = list()
+    for comment in comments:
+        comments_list.append(comment.to_dict())
+
+
     # 将得到的数据存储起来
     data = {
         "user_info": user.to_dict() if user else None,
         "news_dict_list": news_dict_list,
         "news": news.to_dict(),
-        "is_collected": is_collected
+        "is_collected": is_collected,
+        "comments": comments_list
     }
     return render_template("news/detail.html", data=data)
